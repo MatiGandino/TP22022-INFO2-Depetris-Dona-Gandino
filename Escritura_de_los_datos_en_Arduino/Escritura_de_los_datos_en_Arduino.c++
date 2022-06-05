@@ -5,60 +5,42 @@
     humedad - pin 2
     temperatura - pin A0  */
 
-#include <SPI.h>                                            //Libreria tarjeta SD
-#include <SD.h>                                             //       "
-#include <DHT.h>                                            //Librerias humedad
-#include <DHT_U.h>                                          //       "
+#include <SPI.h>   //libreria tarjeta SD
+#include <SD.h>    //       "
+#include <DHT.h>   //librerias humedad
+#include <DHT_U.h> //       "
 
-#define pul 7                                               //Pulsador
+#define pul 7      //pulsador
 
+unsigned long t;
 
 int SENSORHUM = 2;
 float HUMEDAD;
 DHT dht (SENSORHUM, DHT22);
 
-unsigned long tiempo = millis ();                           //Variable que almacena la función millis.
-
 int SENSORTEM;
 float TEMPERATURA;
 
-int TRIG = 10;
-int ECO = 9;
-int DURACION;
-int DISTANCIA;
-
 struct mediciones {
-  struct temperatura {
-    uint16_t valortemp;
-    uint32_t tiempotemp;
-    char indictemp = 'T';
-  }temperatura;
-  struct humedad {
-    uint16_t valorhum;
-    uint32_t tiempohum;
-    char indichum = 'H';
-  }humedad; 
-  struct ultrasonido {
-    uint16_t valorult;
-    uint32_t tiempoult;
-    char indicult = 'U';
-  }ultrasonido; 
-}mediciones;
+  struct sensores {
+    uint16_t valor;
+    uint32_t tiempo;
+    char indic;
+  } humedad, temperatura; 
+};
 
+unsigned long tiempo_sensores = 0;
 
-File myFile;                                                //declarar myFile
+File myFile;  //declarar myFile
 
 void setup() {
   
   struct mediciones med[5];
   Serial.begin(9600);
   
-  dht.begin ();                                             //Inicialización del sensor de humedad
+  dht.begin ();                   //sensor humedad
 
-  SENSORTEM = analogRead (A0);                              //Sensor temperatura
-  
-  pinMode (TRIG, OUTPUT);
-  pinMode (ECO, INPUT);
+  SENSORTEM = analogRead (A0);                      //sensor temperatura
   
   Serial.print("Iniciando la SD card...");
   if (!SD.begin(4)) {
@@ -71,60 +53,23 @@ void setup() {
 void loop() {
 
 if (digitalRead(pul)){
-  for (int i=1; i<=24; i++) {
-  unsigned long tiempo0 = (millis() - tiempo);              //Variable que pone el tiempo en 0 y así comienza con cada medición.
-  
+
   struct mediciones med;
   delay(100);
-  myFile = SD.open("archivo.dat", FILE_WRITE);              //Crear archivo
+  myFile = SD.open("archivo.dat", FILE_WRITE); //crear archivo
 
-    myFile.print("Hora: ");
-    myFile.print(i);
-    myFile.print(") ");
- 
-//Humedad--------------------------------------------------       
-    mediciones.humedad.indichum = 'H';
-    mediciones.humedad.valorhum = dht.readHumidity (SENSORHUM);
-    mediciones.humedad.tiempohum = (millis() - tiempo0);              //Tiempo total menos el detectado al principio
-    myFile.print("Humedad(");
-    myFile.print(mediciones.humedad.indichum);
-    myFile.print(")");
-    myFile.print(": ");
-    myFile.print(mediciones.humedad.valorhum);
-    myFile.print("  ");
-//Temperatura----------------------------------------------   
-    mediciones.temperatura.indictemp = 'T';
-    mediciones.temperatura.valortemp = ((SENSORTEM * 5000.0) / 1024) /10;
-    mediciones.temperatura.tiempotemp = (millis() - tiempo0);
+    med.humedad.indic = 'H';
+    med.humedad.valor = dht.readHumidity (SENSORHUM);
+    med.humedad.tiempo = millis() - tiempo_sensores;
     
-    myFile.print("Temperatura(");
-    myFile.print(mediciones.temperatura.indictemp);
-    myFile.print(")");
-    myFile.print(": ");
-    myFile.print(mediciones.temperatura.valortemp);
-    myFile.print("  ");
-//Ultrasonido----------------------------------------------
-    digitalWrite (TRIG, HIGH);
-    delay (1);
-    digitalWrite (TRIG, LOW);
+    med.temperatura.indic = 'T';
+    med.temperatura.valor = ((SENSORTEM * 5000.0) / 1024) /10;
+    med.temperatura.tiempo = med.humedad.tiempo;
+    
+    tiempo_sensores = millis();
+ 
+  myFile.write((const uint8_t *)&med, sizeof(med));
   
-    DURACION = pulseIn (ECO, HIGH);
-    DISTANCIA = DURACION / 58.2;
-
-    mediciones.ultrasonido.indicult;
-    mediciones.ultrasonido.valorult = DISTANCIA;
-    mediciones.ultrasonido.tiempoult = (millis() - tiempo0);
-    
-    myFile.print("Distancia(");
-    myFile.print(mediciones.ultrasonido.indicult);
-    myFile.print(")");
-    myFile.print(": ");
-    myFile.print(mediciones.ultrasonido.valorult);
-    myFile.print("Tiempo desde la última medición: ");
-    myFile.print(millis() - tiempo0);
-//---------------------------------------------------------
- 
-  } 
   myFile.close();} //cerrar el archivo
 
 }
