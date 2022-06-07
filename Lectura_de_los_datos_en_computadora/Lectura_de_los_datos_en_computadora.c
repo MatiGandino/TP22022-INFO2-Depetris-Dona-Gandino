@@ -1,32 +1,51 @@
 #include <stdio.h>
 #include <stdint.h> //para utilizar uint16_t y uint32_t
+#define c 5
 
-struct mediciones {
-	struct sensores {
-		uint16_t valor;
-		uint32_t tiempo;
-		char indic;
-	} humedad, temperatura; 
-};
+typedef struct mediciones {
+	struct temperatura {
+		uint32_t tiempotemp;
+		uint16_t valortemp;
+		char indictemp;
+		char temp;
+	}temperatura;
+	struct humedad {
+		uint32_t tiempohum;
+		uint16_t valorhum;
+		char indichum;
+		char hum;
+	}humedad; 
+	struct ultrasonido {
+		uint32_t tiempoult;
+		uint16_t valorult;
+		char indicult;
+		char temp;
+	}ultrasonido; 
+}mediciones;
 
 int main() {
 
-	int i = 5;
-	struct mediciones med[i];
+	mediciones med[c];
 	
 	FILE *fpt;
-	fpt = fopen ("ARCHIVO.DAT", "rb");
 	
-	fread (med, sizeof(struct mediciones), i, fpt);
-
+	fpt = fopen("ARCHIVO.dat", "r");
 	
-	for (i = 0; i < 5; i++){
-	printf ("Sensor: %c \nValor: %d \nTiempo desde la ultima medicion: %d\n\n", med[i].humedad.indic, med[i].humedad.valor, med[i].humedad.tiempo);
-	printf ("Sensor: %c \nValor: %d \nTiempo desde la ultima medicion: %d\n\n\n", med[i].temperatura.indic, med[i].temperatura.valor, med[i].temperatura.tiempo);
-	};
+	if(fpt == NULL){
+		printf("\n  Error al abrir el archivo...");
+		return -1;
+	}
+		
+	printf("\n  Apertura del archivo exitosa...\n\n");
 	
+	fread(med, sizeof(mediciones), c, fpt);
 	fclose (fpt);
+		
+	for (int i = 0; i < c; i++){
+		printf ("  Sensor: %c \n  Valor: %d \n  Tiempo desde la ultima medicion: %d\n\n", med[i].humedad.indichum, med[i].humedad.valorhum, med[i].humedad.tiempohum);
+		printf ("  Sensor: %c \n  Valor: %d \n  Tiempo desde la ultima medicion: %d\n\n", med[i].temperatura.indictemp, med[i].temperatura.valortemp, med[i].temperatura.tiempotemp);
+		printf ("  Sensor: %c \n  Valor: %d \n  Tiempo desde la ultima medicion: %d\n\n\n", med[i].ultrasonido.indicult, med[i].ultrasonido.valorult, med[i].ultrasonido.tiempoult);
+	};
 	
 	return 0;
 }
-

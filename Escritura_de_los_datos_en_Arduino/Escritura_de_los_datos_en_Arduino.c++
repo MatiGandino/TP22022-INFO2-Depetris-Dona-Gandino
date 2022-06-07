@@ -1,75 +1,103 @@
- /* MOSI - pin 11
-    MISO - pin 12
-    CLK - pin 13
-    CS - pin 4    
-    humedad - pin 2
-    temperatura - pin A0  */
 
-#include <SPI.h>   //libreria tarjeta SD
-#include <SD.h>    //       "
-#include <DHT.h>   //librerias humedad
-#include <DHT_U.h> //       "
+#include <SPI.h>         //Libreria tarjeta SD
+#include <SD.h>          //       "
+#include <DHT.h>         //Librerias humedad
+#include <DHT_U.h>       //       "
+#include <stdint.h> 
+#define pul 7            //Pulsador
+#define SENSORHUM 2
+#define SENSORTEM A0
 
-#define pul 7      //pulsador
-
-unsigned long t;
-
-int SENSORHUM = 2;
-float HUMEDAD;
 DHT dht (SENSORHUM, DHT22);
 
-int SENSORTEM;
-float TEMPERATURA;
+unsigned long tiempo0;                           //Variable que almacena la función millis. 
+File myFile;                                     //declarar myFile
 
-struct mediciones {
-  struct sensores {
-    uint16_t valor;
-    uint32_t tiempo;
-    char indic;
-  } humedad, temperatura; 
-};
+float TEM;      //Valor analogico sensor temperatura
 
-unsigned long tiempo_sensores = 0;
+int TRIG = 10;        //Disparador sensor ultrasonido
+int ECO = 9;          //Receptor sensor ultrasonido
+int DURACION;         //Variable que almacena el tiempo de rebote (ultrasonido)
+int DISTANCIA;        //Calculo de distancia (ultrasonido)
 
-File myFile;  //declarar myFile
+struct mediciones {        
+  struct temperatura {
+    uint32_t tiempotemp;
+    uint16_t valortemp;
+    char indictemp = 'T';
+    char temp;
+  }temperatura;
+  struct humedad {
+    uint32_t tiempohum;
+    uint16_t valorhum;
+    char indichum = 'H';
+    char hum;
+  }humedad; 
+  struct ultrasonido {
+    uint32_t tiempoult;
+    uint16_t valorult;
+    char indicult = 'U';
+    char ultra;
+  }ultrasonido; 
+}mediciones;
 
-void setup() {
+struct mediciones med;       //Declaracion de estructura
+
+void setup(){
+  Serial.begin(9600);        //Inicializar el monitor serie
   
-  struct mediciones med[5];
-  Serial.begin(9600);
+  dht.begin ();              //Inicialización del sensor de humedad
   
-  dht.begin ();                   //sensor humedad
-
-  SENSORTEM = analogRead (A0);                      //sensor temperatura
+  pinMode (TRIG, OUTPUT);    //Salida ultrasonido
+  pinMode (ECO, INPUT);      //Entrada ultrasonido
   
   Serial.print("Iniciando la SD card...");
   if (!SD.begin(4)) {
     Serial.println("Iniciacion fallida!");
-    while (1); }
+    while(1); }
   Serial.println("Iniciacion correcta.");
 
+  tiempo0 = 0;       //Inicializamos tiempo
 }
 
 void loop() {
+  TEM = analogRead(SENSORTEM);           //Sensor temperatura
 
-if (digitalRead(pul)){
-
-  struct mediciones med;
-  delay(100);
-  myFile = SD.open("archivo.dat", FILE_WRITE); //crear archivo
-
-    med.humedad.indic = 'H';
-    med.humedad.valor = dht.readHumidity (SENSORHUM);
-    med.humedad.tiempo = millis() - tiempo_sensores;
-    
-    med.temperatura.indic = 'T';
-    med.temperatura.valor = ((SENSORTEM * 5000.0) / 1024) /10;
-    med.temperatura.tiempo = med.humedad.tiempo;
-    
-    tiempo_sensores = millis();
- 
-  myFile.write((const uint8_t *)&med, sizeof(med));
+  digitalWrite(TRIG, HIGH);
+  delay (1);                            //Funcionamiento sensor ultrasonido
+  digitalWrite (TRIG, LOW);
   
-  myFile.close();} //cerrar el archivo
+  DURACION = pulseIn (ECO, HIGH);       //               "
+  DISTANCIA = DURACION / 58.2;
 
+if (digitalRead(pul)){                  //Evalua el estado del pulsador
+
+      myFile = SD.open("archivo.dat", FILE_WRITE);             //Crear archivo
+     
+  //Datos de sensor humedad--------------------------------------------------      
+      med.humedad.valorhum = dht.readHumidity (SENSORHUM);
+      med.humedad.tiempohum = millis() - tiempo0;
+      med.humedad.indichum = 'H';
+  
+  //Datos de sensor temperatura----------------------------------------------   
+      med.temperatura.valortemp = ((TEM * 5000.0) / 1024)/10;
+      med.temperatura.tiempotemp = millis() - tiempo0;
+      med.temperatura.indictemp = 'T';
+  
+  //Datos de sensor ultrasonido----------------------------------------------
+      med.ultrasonido.valorult = DISTANCIA;
+      med.ultrasonido.tiempoult = millis() - tiempo0;
+      med.ultrasonido.indicult = 'U';
+  
+  //-------------------------------------------------------------------------
+      tiempo0 = millis();          //Valorizacion tiempo respecto a millis
+      
+      delay(200);                  //Antirrebote
+      
+      Serial.println("Escribiendo SD Card...");             //Comprobamos la correcta escritura
+      
+      myFile.write((const uint8_t *)&med, sizeof(med));     //Subida de los datos al SD
+      myFile.close();                                       //Cerramos el archivo
+      
+  }
 }
