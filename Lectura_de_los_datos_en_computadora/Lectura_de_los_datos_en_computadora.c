@@ -29,7 +29,7 @@ int main() {
 	
 	FILE *fpt;
 	
-	fpt = fopen("D:/Rafael/Desktop/ARCHIVO.dat", "r");      //Agregar la direccion del archivo.
+	fpt = fopen("ARCHIVO.dat", "r");      //Agregar la direccion del archivo.
 	
 	if(fpt == NULL){
 		printf("\n  Error al abrir el archivo...");
