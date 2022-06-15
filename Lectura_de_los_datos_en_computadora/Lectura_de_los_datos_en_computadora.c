@@ -4,23 +4,11 @@
 
 typedef struct mediciones {
 	struct temperatura {
-		uint32_t tiempotemp;
-		uint16_t valortemp;
-		char indictemp;
+		uint32_t tiempo;
+		uint16_t valor;
+		char indic;
 		char temp;
-	}temperatura;
-	struct humedad {
-		uint32_t tiempohum;
-		uint16_t valorhum;
-		char indichum;
-		char hum;
-	}humedad; 
-	struct ultrasonido {
-		uint32_t tiempoult;
-		uint16_t valorult;
-		char indicult;
-		char temp;
-	}ultrasonido; 
+	}temperatura, humedad, ultrasonido;
 }mediciones;
 
 int main() {
@@ -42,9 +30,9 @@ int main() {
 	fclose (fpt);
 		
 	for (int i = 0; i < c; i++){
-		printf ("  Sensor: %c \n  Valor: %d \n  Tiempo desde la ultima medicion: %d\n\n", med[i].humedad.indichum, med[i].humedad.valorhum, med[i].humedad.tiempohum);
-		printf ("  Sensor: %c \n  Valor: %d \n  Tiempo desde la ultima medicion: %d\n\n", med[i].temperatura.indictemp, med[i].temperatura.valortemp, med[i].temperatura.tiempotemp);
-		printf ("  Sensor: %c \n  Valor: %d \n  Tiempo desde la ultima medicion: %d\n\n\n", med[i].ultrasonido.indicult, med[i].ultrasonido.valorult, med[i].ultrasonido.tiempoult);
+		printf ("  Sensor: %c \n  Valor: %d \n  Tiempo desde la ultima medicion: %d\n\n", med[i].humedad.indic, med[i].humedad.valor, med[i].humedad.tiempo);
+		printf ("  Sensor: %c \n  Valor: %d \n  Tiempo desde la ultima medicion: %d\n\n", med[i].temperatura.indic, med[i].temperatura.valor, med[i].temperatura.tiempo);
+		printf ("  Sensor: %c \n  Valor: %d \n  Tiempo desde la ultima medicion: %d\n\n\n", med[i].ultrasonido.indic, med[i].ultrasonido.valor, med[i].ultrasonido.tiempo);
 	};
 	
 	return 0;

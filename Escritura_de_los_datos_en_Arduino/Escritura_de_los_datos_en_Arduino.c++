@@ -22,23 +22,11 @@ int DISTANCIA;        //Calculo de distancia (ultrasonido)
 
 struct mediciones {        
   struct temperatura {
-    uint32_t tiempotemp;
-    uint16_t valortemp;
-    char indictemp = 'T';
+    uint32_t tiempo;
+    uint16_t valor;
+    char indic;
     char temp;
-  }temperatura;
-  struct humedad {
-    uint32_t tiempohum;
-    uint16_t valorhum;
-    char indichum = 'H';
-    char hum;
-  }humedad; 
-  struct ultrasonido {
-    uint32_t tiempoult;
-    uint16_t valorult;
-    char indicult = 'U';
-    char ultra;
-  }ultrasonido; 
+  }temperatura, humedad, ultrasonido;
 }mediciones;
 
 struct mediciones med;       //Declaracion de estructura
@@ -75,19 +63,19 @@ if (digitalRead(pul)){                  //Evalua el estado del pulsador
       myFile = SD.open("archivo.dat", FILE_WRITE);             //Crear archivo
      
   //Datos de sensor humedad--------------------------------------------------      
-      med.humedad.valorhum = dht.readHumidity (SENSORHUM);
-      med.humedad.tiempohum = millis() - tiempo0;
-      med.humedad.indichum = 'H';
+      med.humedad.valor = dht.readHumidity (SENSORHUM);
+      med.humedad.tiempo = millis() - tiempo0;
+      med.humedad.indic = 'H';
   
   //Datos de sensor temperatura----------------------------------------------   
-      med.temperatura.valortemp = ((TEM * 5000.0) / 1024)/10;
-      med.temperatura.tiempotemp = millis() - tiempo0;
-      med.temperatura.indictemp = 'T';
+      med.temperatura.valor = ((TEM * 5000.0) / 1024)/10;
+      med.temperatura.tiempo = millis() - tiempo0;
+      med.temperatura.indic = 'T';
   
   //Datos de sensor ultrasonido----------------------------------------------
-      med.ultrasonido.valorult = DISTANCIA;
-      med.ultrasonido.tiempoult = millis() - tiempo0;
-      med.ultrasonido.indicult = 'U';
+      med.ultrasonido.valor = DISTANCIA;
+      med.ultrasonido.tiempo = millis() - tiempo0;
+      med.ultrasonido.indic = 'U';
   
   //-------------------------------------------------------------------------
       tiempo0 = millis();          //Valorizacion tiempo respecto a millis
